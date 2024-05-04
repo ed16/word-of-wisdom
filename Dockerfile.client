@@ -1,7 +1,7 @@
 FROM golang:1.22
 
-WORKDIR /app
+WORKDIR /
 COPY . .
 
 RUN go build -o client ./cmd/client
-CMD ["./client", "--server", "server:8080"]
+CMD ["./client"]

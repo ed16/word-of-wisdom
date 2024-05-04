@@ -5,6 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
+    environment:
+      - SERVER_ADDR=server:8080
+      - DIFFICULTY=5
+      - SERVER_KEEP_ALIVE=10s
+      - SERVER_DEADLINE=3s
     ports:
       - "8080:8080"
     networks:
@@ -15,7 +20,8 @@ services:
       context: .
       dockerfile: Dockerfile.client
     environment:
-      - SERVER_ADDRESS=server:8080
+      - SERVER_ADDR=server:8080
+      - CLIENT_REQUEST_COUNT=100
     networks:
       - wisdom-network
     depends_on:
