@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile.client
     environment:
       - SERVER_ADDR=server:8080
-      - CLIENT_REQUEST_COUNT=100
+      - CLIENT_REQUEST_COUNT=50
     networks:
       - wisdom-network
     depends_on:
