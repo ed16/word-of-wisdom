@@ -14,7 +14,7 @@ func SolveChallenge(challenge string, difficulty byte) string {
 	var nonce int
 	for {
 		nonceStr := strconv.Itoa(nonce)
-		if ValidateChallenge(challenge, nonceStr, 4) {
+		if ValidateChallenge(challenge, nonceStr, difficulty) {
 			return nonceStr
 		}
 		nonce++
