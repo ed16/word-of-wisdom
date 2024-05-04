@@ -12,26 +12,21 @@ import (
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.TODO(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
 	go func() {
 		<-ctx.Done()
-		cancel()
+		log.Println("Gracefully stopping...")
 	}()
 
 	cfg, err := config.NewConfig(ctx, config.ClientConfig{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalf("Failed to load configuration: %s", err)
 	}
 
-	cliClient := client.NewClient(cfg)
+	app := client.NewClient(cfg)
 	log.Println("Connecting to server...")
 
-	for i := 0; i < cfg.RequestCount; i++ {
-		quote, err := cliClient.RequestQuote(ctx)
-		if err != nil {
-			log.Printf("Failed to get quote: %s\n", err)
-			return
-		}
-		log.Printf("Received quote #%d: %s\n", i+1, quote)
-	}
+	app.Start(ctx)
+
 }

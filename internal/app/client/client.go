@@ -12,15 +12,29 @@ import (
 )
 
 type Client struct {
-	conf *config.ClientConfig
+	config *config.ClientConfig
 }
 
 func NewClient(conf *config.ClientConfig) *Client {
-	return &Client{conf: conf}
+	return &Client{config: conf}
 }
 
-func (c *Client) RequestQuote(ctx context.Context) (string, error) {
-	conn, err := tcp.Connect(ctx, c.conf.ServerAddr)
+func (c *Client) Start(ctx context.Context) {
+	for i := 0; i < c.config.RequestCount; i++ {
+		if ctx.Err() != nil {
+			break
+		}
+		quote, err := c.requestQuote(ctx)
+		if err != nil {
+			log.Printf("Failed to get quote: %s\n", err)
+			return
+		}
+		log.Printf("Received quote #%d: %s\n", i+1, quote)
+	}
+}
+
+func (c *Client) requestQuote(ctx context.Context) (string, error) {
+	conn, err := tcp.Connect(ctx, c.config.ServerAddr)
 	if err != nil {
 		return "", err
 	}

@@ -12,11 +12,8 @@ import (
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.TODO(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
-	go func() {
-		<-ctx.Done()
-		cancel()
-	}()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
 
 	cfg, err := config.NewConfig(ctx, config.ServerConfig{})
 	if err != nil {

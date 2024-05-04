@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/ed16/word-of-wisdom/config"
 	"github.com/ed16/word-of-wisdom/internal/quotes"
@@ -15,55 +17,74 @@ import (
 )
 
 type Server struct {
-	Config *config.ServerConfig
+	config *config.ServerConfig
+	wg     sync.WaitGroup // WaitGroup to manage active connections
 }
 
 func NewServer(cfg *config.ServerConfig) *Server {
-	return &Server{Config: cfg}
+	return &Server{config: cfg}
 }
 
 // Start begins listening and accepting connections on the server's address.
 func (s *Server) Start(ctx context.Context) {
 	lc := net.ListenConfig{
-		KeepAlive: s.Config.KeepAlive,
+		KeepAlive: s.config.KeepAlive,
 	}
 
-	listener, err := lc.Listen(ctx, "tcp", s.Config.ListenAddr)
+	listener, err := lc.Listen(ctx, "tcp", s.config.ListenAddr)
 
 	if err != nil {
-		log.Panicf("Failed to listen on %s: %v", s.Config.ListenAddr, err)
+		log.Panicf("Failed to listen on %s: %v", s.config.ListenAddr, err)
 	}
 	defer listener.Close()
 
-	log.Printf("Server started, listening on %s\n", s.Config.ListenAddr)
+	log.Printf("Server started, listening on %s\n", s.config.ListenAddr)
+
+	go func() {
+		<-ctx.Done()
+		log.Println("Gracefully stopping...")
+		s.wg.Wait() // Wait for all connections to finish
+		log.Println("All connections closed.")
+		listener.Close()
+	}()
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
+			// Check if the error is due to context cancellation.
+			if ctx.Err() != nil {
+				log.Println("Server shutting down...")
+				return
+			}
 			log.Println("Error accepting connection:", err)
 			continue
 		}
+		s.wg.Add(1) // Increment WaitGroup counter
 		go s.handleConnection(conn)
 	}
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	defer conn.Close()
+	defer func() {
+		conn.Close()
+		s.wg.Done() // Decrement WaitGroup counter on connection close
+	}()
+	_ = conn.SetDeadline(time.Now().Add(s.config.Deadline))
 
 	challenge := issueChallenge()
 	// Send challenge
-	err := tcp.Send(conn, fmt.Sprintf("Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", challenge, s.Config.Difficulty))
+	err := tcp.Send(conn, fmt.Sprintf("Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", challenge, s.config.Difficulty))
 	if err != nil {
 		log.Println("Error sending challenge:", err)
 	}
 
-	// Read response
-	response, err := tcp.Receive(conn)
+	// Receive solution
+	solution, err := tcp.Receive(conn)
 	if err != nil {
-		log.Println("Error receiving response:", err)
+		log.Println("Error receiving solution:", err)
 	}
 
-	if pow.ValidateChallenge(challenge, response, s.Config.Difficulty) {
+	if pow.ValidateChallenge(challenge, solution, s.config.Difficulty) {
 		quote := quotes.GetRandomQuote()
 		conn.Write([]byte(quote + "\n"))
 	} else {
