@@ -60,11 +60,11 @@ func (s *Server) Start(ctx context.Context) {
 			continue
 		}
 		s.wg.Add(1) // Increment WaitGroup counter
-		go s.handleConnection(conn)
+		go s.HandleConnection(conn)
 	}
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
+func (s *Server) HandleConnection(conn net.Conn) {
 	defer func() {
 		conn.Close()
 		s.wg.Done() // Decrement WaitGroup counter on connection close
