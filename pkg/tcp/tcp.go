@@ -13,7 +13,7 @@ func Connect(ctx context.Context, address string) (net.Conn, error) {
 	var dialer net.Dialer
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to %s: %w", address, err)
+		return nil, fmt.Errorf("Failed to connect to %s: %w", address, err)
 	}
 	return conn, nil
 }
@@ -22,10 +22,10 @@ func Connect(ctx context.Context, address string) (net.Conn, error) {
 func Send(conn net.Conn, message string) error {
 	writer := bufio.NewWriter(conn)
 	if _, err := writer.WriteString(message + "\n"); err != nil {
-		return fmt.Errorf("failed to write message to connection: %w", err)
+		return fmt.Errorf("Failed to write message to connection: %w", err)
 	}
 	if err := writer.Flush(); err != nil {
-		return fmt.Errorf("failed to flush connection: %w", err)
+		return fmt.Errorf("Failed to flush connection: %w", err)
 	}
 	return nil
 }
@@ -34,9 +34,11 @@ func Send(conn net.Conn, message string) error {
 func Receive(conn net.Conn) (string, error) {
 	reader := bufio.NewReader(conn)
 	message, err := reader.ReadString('\n')
-	message = message[:len(message)-1]
+	if len(message) > 0 {
+		message = message[:len(message)-1]
+	}
 	if err != nil {
-		return "", fmt.Errorf("failed to read from connection: %w", err)
+		return "", fmt.Errorf("Failed to read from connection: %w", err)
 	}
 	return message, nil
 }
