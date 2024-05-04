@@ -27,7 +27,6 @@ func (c *Client) Start(ctx context.Context) {
 		quote, err := c.requestQuote(ctx)
 		if err != nil {
 			log.Printf("Failed to get quote: %s\n", err)
-			return
 		}
 		log.Printf("Received quote #%d: %s\n", i+1, quote)
 	}
