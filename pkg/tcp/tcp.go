@@ -34,6 +34,7 @@ func Send(conn net.Conn, message string) error {
 func Receive(conn net.Conn) (string, error) {
 	reader := bufio.NewReader(conn)
 	message, err := reader.ReadString('\n')
+	message = message[:len(message)-1]
 	if err != nil {
 		return "", fmt.Errorf("failed to read from connection: %w", err)
 	}

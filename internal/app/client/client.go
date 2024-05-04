@@ -48,7 +48,7 @@ func (c *Client) RequestQuote(ctx context.Context) (string, error) {
 func extractChallengeAndDifficulty(challengePrompt string) (string, byte) {
 	var challenge string
 	var difficulty int
-	fmt.Sscanf(challengePrompt, "Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", &challenge, &difficulty)
+	fmt.Sscanf(challengePrompt, "Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros", &challenge, &difficulty)
 
 	return challenge, byte(difficulty)
 }
