@@ -86,9 +86,15 @@ func (s *Server) HandleConnection(conn net.Conn) {
 
 	if pow.ValidateChallenge(challenge, solution, s.config.Difficulty) {
 		quote := quotes.GetRandomQuote()
-		conn.Write([]byte(quote + "\n"))
+		_, err = conn.Write([]byte(quote + "\n"))
+		if err != nil {
+			log.Println("Error sending quote:", err)
+		}
 	} else {
-		conn.Write([]byte("Invalid PoW solution\n"))
+		_, err = conn.Write([]byte("Invalid PoW solution\n"))
+		if err != nil {
+			log.Println("Error sending responce:", err)
+		}
 	}
 }
 
