@@ -25,3 +25,11 @@ Send the hash back to the server to gain access to the service.
 Receive and display the quote.
 
 
+## Getting started
+
+```
+# Run server and client by docker-compose
+docker-compose up
+```
+<img align="left" src="./images/run.png">
+
