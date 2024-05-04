@@ -1,6 +1,6 @@
 FROM golang:1.22
 
-WORKDIR /
+WORKDIR /app
 COPY . .
 
 RUN go build -o client ./cmd/client
