@@ -7,6 +7,7 @@ import (
 	"github.com/ed16/word-of-wisdom/config"
 	"github.com/ed16/word-of-wisdom/internal/app/client"
 	"github.com/ed16/word-of-wisdom/internal/app/server"
+	"github.com/ed16/word-of-wisdom/pkg/tcp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func TestServerClientInteraction(t *testing.T) {
 		ListenAddr: "localhost:9999",
 		Difficulty: 1,
 	}
-	srv := server.NewServer(serverConfig)
+	srv := server.NewServer(serverConfig, &tcp.DefaultConnector{})
 	ctx, cancel := context.WithCancel(context.Background())
 	go srv.Start(ctx)
 	defer cancel()
@@ -23,7 +24,7 @@ func TestServerClientInteraction(t *testing.T) {
 	clientConfig := &config.ClientConfig{
 		ServerAddr: "localhost:9999",
 	}
-	clt := client.NewClient(clientConfig)
+	clt := client.NewClient(clientConfig, &tcp.DefaultConnector{})
 
 	clt.Start(ctx)
 	assert.NotEmpty(t, srv)
