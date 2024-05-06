@@ -40,7 +40,8 @@ func (d *DefaultConnector) Send(conn net.Conn, message string) error {
 }
 
 func (d *DefaultConnector) Receive(conn net.Conn) (string, error) {
-	reader := bufio.NewReader(conn)
+	const maxBufferSize = 16 * 1024 // 16KB
+	reader := bufio.NewReaderSize(conn, maxBufferSize)
 	message, err := reader.ReadString('\n')
 	if len(message) > 0 {
 		message = message[:len(message)-1]
