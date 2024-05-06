@@ -22,13 +22,13 @@ jobs:
       - name: build and test
         run: |
           go test -v -timeout=100s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov_tmp ./...
-          cat $GITHUB_WORKSPACE/profile.cov_tmp | grep -v "mocks" | grep -v "_mock" > $GITHUB_WORKSPACE/profile.cov
+          cat $GITHUB_WORKSPACE/profile.cov_tmp | grep -v "cmd" > $GITHUB_WORKSPACE/profile.cov
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          
+
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
 
