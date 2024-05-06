@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
-	"strconv"
 	"sync"
 	"time"
 
@@ -75,7 +73,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	}()
 	_ = conn.SetDeadline(time.Now().Add(s.config.Deadline))
 
-	challenge := issueChallenge()
+	challenge := pow.IssueChallenge()
 	// Send challenge
 	err := s.connector.Send(conn, fmt.Sprintf("Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", challenge, s.config.Difficulty))
 	if err != nil {
@@ -108,9 +106,4 @@ func (s *Server) AddConnection() {
 
 func (s *Server) DoneConnection() {
 	s.wg.Done()
-}
-
-func issueChallenge() string {
-	challenge := strconv.Itoa(rand.Intn(1000000))
-	return challenge
 }
