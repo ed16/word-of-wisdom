@@ -28,14 +28,12 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-
-      - name: install goveralls
-        run: |
-          curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.45.0
-          GO111MODULE=off go get -u -v github.com/mattn/goveralls
+          
+      - name: Install goveralls
+        run: go install github.com/mattn/goveralls@latest
 
       - name: submit coverage
-        run: $(go env GOPATH)/bin/goveralls -service="github" -coverprofile=$GITHUB_WORKSPACE/profile.cov
+        run: goveralls -coverprofile=$GITHUB_WORKSPACE/profile.cov -service=github
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           name: Set up QEMU
