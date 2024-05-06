@@ -38,9 +38,8 @@ docker-compose up
 
 Definitely, there are a lot of things to be improved in the project, like:
 
-Add performance tests
-Make the challenge more complex
-Message format can be binary to optimize network communication
-Add comprehensive unit tests with all negative scenarios and edge cases
-Add comprehensive logging
-etc.
+1. Increase test coverage, add more comprehensive unit tests with all negative scenarios and edge cases
+2. Add performance tests
+3. Change message format to binary in order to optimize the network communication
+4. Add comprehensive logging
+5. etc.
