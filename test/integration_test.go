@@ -13,7 +13,7 @@ import (
 
 func TestServerClientInteraction(t *testing.T) {
 	serverConfig := &config.ServerConfig{
-		ListenAddr: "localhost:0",
+		ListenAddr: "127.0.0.1:0",
 		Difficulty: 1,
 	}
 	srv := server.NewServer(serverConfig, &tcp.DefaultConnector{})
@@ -22,7 +22,7 @@ func TestServerClientInteraction(t *testing.T) {
 	defer cancel()
 
 	clientConfig := &config.ClientConfig{
-		ServerAddr: "localhost:0",
+		ServerAddr: "127.0.0.1:0",
 	}
 	clt := client.NewClient(clientConfig, &tcp.DefaultConnector{})
 
