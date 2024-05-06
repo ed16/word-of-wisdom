@@ -9,6 +9,7 @@ import (
 
 	"github.com/ed16/word-of-wisdom/config"
 	"github.com/ed16/word-of-wisdom/internal/app/server"
+	"github.com/ed16/word-of-wisdom/pkg/tcp"
 )
 
 func main() {
@@ -20,6 +21,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := server.NewServer(cfg)
+	srv := server.NewServer(cfg, &tcp.DefaultConnector{})
 	srv.Start(ctx)
 }

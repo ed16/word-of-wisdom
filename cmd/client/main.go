@@ -9,6 +9,7 @@ import (
 
 	"github.com/ed16/word-of-wisdom/config"
 	"github.com/ed16/word-of-wisdom/internal/app/client"
+	"github.com/ed16/word-of-wisdom/pkg/tcp"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 		log.Fatalf("Failed to load configuration: %s", err)
 	}
 
-	app := client.NewClient(cfg)
+	app := client.NewClient(cfg, &tcp.DefaultConnector{})
 	log.Println("Connecting to server...")
 
 	app.Start(ctx)

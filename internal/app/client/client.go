@@ -12,11 +12,15 @@ import (
 )
 
 type Client struct {
-	config *config.ClientConfig
+	config    *config.ClientConfig
+	connector tcp.Connector
 }
 
-func NewClient(conf *config.ClientConfig) *Client {
-	return &Client{config: conf}
+func NewClient(conf *config.ClientConfig, connector tcp.Connector) *Client {
+	if connector == nil {
+		connector = &tcp.DefaultConnector{}
+	}
+	return &Client{config: conf, connector: connector}
 }
 
 func (c *Client) Start(ctx context.Context) {
@@ -33,13 +37,13 @@ func (c *Client) Start(ctx context.Context) {
 }
 
 func (c *Client) requestQuote(ctx context.Context) (string, error) {
-	conn, err := tcp.Connect(ctx, c.config.ServerAddr)
+	conn, err := c.connector.Connect(ctx, c.config.ServerAddr)
 	if err != nil {
 		return "", err
 	}
-	defer tcp.Close(conn)
+	defer c.connector.Close(conn)
 
-	challengePrompt, err := tcp.Receive(conn)
+	challengePrompt, err := c.connector.Receive(conn)
 	if err != nil {
 		return "", err
 	}
@@ -49,12 +53,12 @@ func (c *Client) requestQuote(ctx context.Context) (string, error) {
 	nonce := pow.SolveChallenge(challenge, difficulty)
 	log.Printf("Challenge solved in %v\n", time.Since(startTime))
 
-	err = tcp.Send(conn, nonce+"\n")
+	err = c.connector.Send(conn, nonce+"\n")
 	if err != nil {
 		return "", err
 	}
 
-	quote, err := tcp.Receive(conn)
+	quote, err := c.connector.Receive(conn)
 	return quote, err
 }
 

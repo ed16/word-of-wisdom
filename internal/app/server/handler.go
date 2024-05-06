@@ -17,12 +17,16 @@ import (
 )
 
 type Server struct {
-	config *config.ServerConfig
-	wg     sync.WaitGroup // WaitGroup to manage active connections
+	config    *config.ServerConfig
+	connector tcp.Connector
+	wg        sync.WaitGroup // WaitGroup to manage active connections
 }
 
-func NewServer(cfg *config.ServerConfig) *Server {
-	return &Server{config: cfg}
+func NewServer(cfg *config.ServerConfig, connector tcp.Connector) *Server {
+	if connector == nil {
+		connector = &tcp.DefaultConnector{}
+	}
+	return &Server{config: cfg, connector: connector}
 }
 
 // Start begins listening and accepting connections on the server's address.
@@ -59,27 +63,27 @@ func (s *Server) Start(ctx context.Context) {
 			log.Println("Error accepting connection:", err)
 			continue
 		}
-		s.wg.Add(1) // Increment WaitGroup counter
+		s.AddConnection() // Increment WaitGroup counter
 		go s.HandleConnection(conn)
 	}
 }
 
 func (s *Server) HandleConnection(conn net.Conn) {
 	defer func() {
-		conn.Close()
-		s.wg.Done() // Decrement WaitGroup counter on connection close
+		s.connector.Close(conn)
+		s.DoneConnection() // Decrement WaitGroup counter on connection close
 	}()
 	_ = conn.SetDeadline(time.Now().Add(s.config.Deadline))
 
 	challenge := issueChallenge()
 	// Send challenge
-	err := tcp.Send(conn, fmt.Sprintf("Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", challenge, s.config.Difficulty))
+	err := s.connector.Send(conn, fmt.Sprintf("Solve PoW: SHA256( %s + <nonce> ) with %d leading zeros\n", challenge, s.config.Difficulty))
 	if err != nil {
 		log.Println("Error sending challenge:", err)
 	}
 
 	// Receive solution
-	solution, err := tcp.Receive(conn)
+	solution, err := s.connector.Receive(conn)
 	if err != nil {
 		log.Println("Error receiving solution:", err)
 	}
@@ -96,6 +100,14 @@ func (s *Server) HandleConnection(conn net.Conn) {
 			log.Println("Error sending responce:", err)
 		}
 	}
+}
+
+func (s *Server) AddConnection() {
+	s.wg.Add(1)
+}
+
+func (s *Server) DoneConnection() {
+	s.wg.Done()
 }
 
 func issueChallenge() string {
